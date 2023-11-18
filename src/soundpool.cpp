@@ -1,6 +1,9 @@
 #ifndef SOUND_POOL
 #define SOUND_POOL
 
+
+#define NO_SOUND true
+
 #include <SFML/Audio.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
 #include <cstddef>
@@ -24,6 +27,9 @@ public:
     }
   }
   void play(const sf::SoundBuffer &buffer) {
+    if(NO_SOUND){
+      return;
+    }
     sf::Sound *suitableInstance;
     for (auto &s : sounds) {
       if (s == std::nullptr_t()) {

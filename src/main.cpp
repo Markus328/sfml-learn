@@ -1,3 +1,5 @@
+
+#undef NDEBUG
 #include "soundpool.cpp"
 #include <SFML/Audio.hpp>
 #include <SFML/Audio/Sound.hpp>
@@ -9,15 +11,18 @@
 #include <filesystem>
 #include <iostream>
 #include <math.h>
+#include <queue>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include "ball.cpp"
 #include "border.cpp"
 #include "entity.cpp"
 
-std::vector<Entity *> Entity::entities;
+std::unordered_map<std::string, std::vector<Entity *>> Entity::entities;
+std::queue<Entity *> Entity::newEntitiesQueue;
 
 Border Border::top =
     Border(sf::Vector2f(-5000, -5000), sf::Vector2f(10000 + 1440, 5000), "Top");
@@ -30,16 +35,19 @@ Border Border::right =
     Border(sf::Vector2f(1440, -5000), sf::Vector2f(5000, 10000 + 900), "Left");
 sf::String screenStr("Aperte ESC para sair");
 bool requested = false;
-sf::SoundBuffer bop;
-Ball ball(sf::Vector2f(300, 300), 10, sf::Color(200, 50, 200));
+
+sf::SoundBuffer Ball::bop;
+
+Ball ball(sf::Vector2f(300, 300), 20, sf::Color(20, 80, 50));
 
 int main() {
   SoundPool pool = SoundPool::getInstance();
-
+  std::cout << "sizeof ball: " << sizeof(Ball);
   ball.setAngle(M_PI * 45 / 180);
-  ball.setSpeed(600);
+  ball.setSpeed(200);
+  Entity::commitNewEntities();
   sf::Clock clock;
-  bop.loadFromFile("/home/markus/.config/util/sounds/screen_tick.wav");
+  Ball::bop.loadFromFile("/home/markus/.config/util/sounds/voltest.wav");
   sf::ContextSettings settings;
   settings.antialiasingLevel = 8;
   auto window = sf::RenderWindow{
@@ -57,7 +65,7 @@ int main() {
       case sf::Event::KeyPressed:
         screenStr = "Pressed key " + std::to_string(event.key.code);
         {
-          pool.play(bop);
+          pool.play(Ball::bop);
           // std::this_thread::sleep_for(std::chrono::seconds(2));
         }
         if (event.key.code == sf::Keyboard::Escape) {
@@ -69,6 +77,8 @@ int main() {
           } else {
             window.close();
           }
+        } else if (event.key.code == sf::Keyboard::Space) {
+          Entity::commitNewEntities();
         }
         break;
       default:
@@ -86,11 +96,16 @@ int main() {
     window.draw(txt);
 
     float elapsedTime = clock.restart().asSeconds();
-    std::cout << Entity::getEntities().size();
-    for (Entity *e : Entity::getEntities()) {
+    for (Entity *e : Entity::getEntities()["all"]) {
+      assert(e != nullptr);
       e->step(elapsedTime);
+    }
+    for (Entity *e : Entity::getEntities()["all"]) {
+      assert(e != nullptr);
+      e->stepCollide();
       window.draw(e->getShape());
     }
+    Entity::commitNewEntities();
     window.display();
   }
 }
