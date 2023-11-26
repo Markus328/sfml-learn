@@ -22,7 +22,7 @@ Ball *Ball::clone(World &world) {
   // assert(Entity::getEntities()["Ball"]);
   int numBalls = world.getEntities<Ball>().size();
   // std::cout << "balllsss: " << numBalls << "\n";
-  if (numBalls >= 1000) {
+  if (numBalls >= 400) {
     return nullptr;
   }
 
