@@ -4,7 +4,7 @@ project(sfml-learn LANGUAGES CXX)
 set(CMAKE_CXX_COMPILER "clang++")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS
     ON
     CACHE INTERNAL "")
@@ -18,7 +18,7 @@ set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/sfml-learn)
 # set(BUILD_SHARED_LIBS OFF)
 
 set(SFML_VERSION 2.5.1)
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
 # set(WIN32 TRUE)
 
 find_package(
@@ -39,17 +39,16 @@ if(NOT SFML_FOUND)
 endif()
 
 set(SFML_LINKS sfml-window sfml-graphics sfml-audio)
-
-add_executable(sfml-learn src/main.cpp src/ball.cpp src/soundpool.cpp)
+file(GLOB_RECURSE source_list "src/*.cpp")
+add_executable(sfml-learn ${source_list})
 if(CMAKE_SYSTEM MATCHES Windows)
-  target_link_libraries(sfml-learn PRIVATE opengl32 winmm gdi32
-                                               ${SFML_LINKS})
+  target_link_libraries(sfml-learn PRIVATE opengl32 winmm gdi32 ${SFML_LINKS})
 else()
-  target_link_libraries(sfml-learn PRIVATE ${SFML_LINKS})
+  target_link_libraries(sfml-learn PRIVATE ${SFML_LINKS} fmt)
 endif()
 
-target_include_directories(sfml-learn PRIVATE ${LIB_DIR}/include)
-target_compile_features(sfml-learn PRIVATE cxx_std_17)
+target_include_directories(sfml-learn PRIVATE ${LIB_DIR}/include include)
+target_compile_features(sfml-learn PRIVATE cxx_std_20)
 
 # if(WIN32) add_custom_command( TARGET sfml-learn COMMENT "Copy OpenAL DLL"
 # PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy

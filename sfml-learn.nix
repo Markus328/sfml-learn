@@ -64,6 +64,7 @@
           base-app.buildInputs
           ++ [
             sfml
+            fmt
             # freetype
             # fontconfig
             # xorg.xorgproto

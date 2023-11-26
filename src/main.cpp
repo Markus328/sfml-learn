@@ -1,5 +1,6 @@
 
-#undef NDEBUG
+#include "world.hpp"
+#include <SFML/System/Vector2.hpp>
 #include "soundpool.cpp"
 #include <SFML/Audio.hpp>
 #include <SFML/Audio/Sound.hpp>
@@ -17,35 +18,24 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ball.cpp"
-#include "border.cpp"
-#include "entity.cpp"
+#include "ball.hpp"
+#include "entity.hpp"
 
-std::unordered_map<std::string, std::vector<Entity *>> Entity::entities;
-std::queue<Entity *> Entity::newEntitiesQueue;
+World world(sf::Vector2f(0, 0), sf::Vector2f(20000, 20000));
 
-Border Border::top =
-    Border(sf::Vector2f(-5000, -5000), sf::Vector2f(10000 + 1440, 5000), "Top");
-
-Border Border::left =
-    Border(sf::Vector2f(-5000, -5000), sf::Vector2f(5000, 10000 + 900), "Left");
-Border Border::bottom = Border(sf::Vector2f(-5000, 900),
-                               sf::Vector2f(10000 + 1440, 5000), "Bottom");
-Border Border::right =
-    Border(sf::Vector2f(1440, -5000), sf::Vector2f(5000, 10000 + 900), "Left");
 sf::String screenStr("Aperte ESC para sair");
 bool requested = false;
 
 sf::SoundBuffer Ball::bop;
 
-Ball ball(sf::Vector2f(300, 300), 20, sf::Color(20, 80, 50));
+Ball ball(sf::Vector2f(300, 300), 20, sf::Color(20, 80, 50), world);
 
 int main() {
   SoundPool pool = SoundPool::getInstance();
   std::cout << "sizeof ball: " << sizeof(Ball);
   ball.setAngle(M_PI * 45 / 180);
   ball.setSpeed(200);
-  Entity::commitNewEntities();
+  world.commitNewEntities();
   sf::Clock clock;
   Ball::bop.loadFromFile("/home/markus/.config/util/sounds/voltest.wav");
   sf::ContextSettings settings;
@@ -78,7 +68,7 @@ int main() {
             window.close();
           }
         } else if (event.key.code == sf::Keyboard::Space) {
-          Entity::commitNewEntities();
+          world.commitNewEntities();
         }
         break;
       default:
@@ -96,16 +86,10 @@ int main() {
     window.draw(txt);
 
     float elapsedTime = clock.restart().asSeconds();
-    for (Entity *e : Entity::getEntities()["all"]) {
-      assert(e != nullptr);
-      e->step(elapsedTime);
-    }
-    for (Entity *e : Entity::getEntities()["all"]) {
-      assert(e != nullptr);
-      e->stepCollide();
+    for (Entity *e : world.getEntities()) {
       window.draw(e->getShape());
     }
-    Entity::commitNewEntities();
+    world.step(elapsedTime);
     window.display();
   }
 }

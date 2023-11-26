@@ -22,6 +22,7 @@ in
       [
         clang-tools
         cmake-language-server
+        fmt
 
         (writeShellScriptBin "bul" ''
           cd $PRJ_ROOT
