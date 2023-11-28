@@ -1,33 +1,28 @@
 // #ifndef BORDER
 // #define BORDER
-// #include "entity.cpp"
-// #include <SFML/Graphics/Color.hpp>
-// #include <SFML/System/Vector2.hpp>
+#include "border.hpp"
+#include "ball.hpp"
+#include "collider.hpp"
+#include "entity.hpp"
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/System/Vector2.hpp>
 
-// class Collider;
-// class Border : public Collider {
-// private:
-//   Border(const sf::Vector2f &position, const sf::Vector2f &size,
-//          const std::string &name, const World &world)
-//       : Collider(position, size, name, world) {
-//     this->shape->setFillColor(sf::Color(255, 0, 0));
-//   }
+Border::Border(const sf::Vector2f &position, const sf::Vector2f &size,
+               const std::string &name, World &world)
+    : world(world), Collider(position, name, world) {
+  this->shape->setFillColor(sf::Color(255, 0, 0));
+  this->size = size;
+  ((sf::RectangleShape *)this->shape.get())->setSize(size);
+  updateBoundingBox();
+}
 
-// public:
-
-//   static Border top, left, bottom, right;
-//   static Border &getTop() {
-//     return top;
-//   }
-//   static Border &getLeft() {
-//     return left;
-//   }
-//   static Border &getBottom() {
-//     return bottom;
-//   }
-//   static Border &getRight() {
-//     return right;
-//   }
-// };
-
-// #endif // !BORDER
+void Border::instantaneousCollide(const Collider &obj, int side) {
+  if (Ball::ball_count < 1000 && obj.getCategory() == "Ball") {
+    const Ball &ball = obj.safe_castTo<Ball>();
+    Ball &clone = ball.clone(world);
+    // clone.move(500, 500);
+    *(colliding.begin() + clone.getId()) = true;
+  }
+}
+void Border::continuousCollide(const Collider &obj, int side) {}
+const sf::Vector2f &Border::getSize() const { return this->size; }

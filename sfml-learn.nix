@@ -65,6 +65,7 @@
           ++ [
             sfml
             fmt
+            gperftools
             # freetype
             # fontconfig
             # xorg.xorgproto

@@ -21,39 +21,33 @@
 #include <unordered_map>
 #include <vector>
 
-Entity::Entity(const sf::Vector2f &position, std::string category,
-               World &world) {
+// Entity::Entity(const sf::Vector2f &position, const sf::Vector2f &size,
+//                std::string category, World &world)
+//     : Entity(position, category, world) {
 
-  this->category = category;
-  this->position = position;
-  this->world = &world;
-  this->id = world.getNewId();
-  world.enqueueNewEntity(*this);
-}
+//   sf::RectangleShape *rectShape = new sf::RectangleShape();
+//   this->shape.reset(rectShape);
 
-Entity::Entity(const sf::Vector2f &position, const sf::Vector2f &size,
-               std::string category, World &world)
-    : Entity(position, category, world) {
-
-  sf::RectangleShape *rectShape = new sf::RectangleShape();
-  this->shape.reset(rectShape);
-
-  rectShape->setPosition(position);
-  rectShape->setSize(size);
-};
-Entity::Entity(const sf::Vector2f &position, const sf::Vector2f &size,
-               std::string category, sf::Shape *shape, World &world)
-    : Entity(position, category, world) {
+//   rectShape->setPosition(position);
+//   rectShape->setSize(size);
+// };
+Entity::Entity(const sf::Vector2f &position, std::string category, World &world,
+               sf::Shape *shape)
+    : position(shape->getPosition()), world(world) {
 
   this->shape.reset(shape);
   this->shape->setPosition(position);
+
+  this->category = category;
+  this->id = world.getNewId();
+  world.enqueueNewEntity(*this);
 };
 
-void Entity::move(float x, float y) {
-  this->position.x = x;
-  this->position.y = y;
-  this->shape->setPosition(this->position);
+bool Entity::operator==(const Entity &other) const {
+  return other.getId() == this->getId();
 }
+
+void Entity::move(float x, float y) { this->shape->setPosition(x, y); }
 void Entity::move(const sf::Vector2f &position) {
   move(position.x, position.y);
 }
@@ -62,8 +56,8 @@ uint16_t Entity::getId() const { return this->id; }
 const sf::Vector2f &Entity::getPosition() const { return this->position; }
 const sf::Shape &Entity::getShape() const { return *this->shape.get(); }
 sf::Shape &Entity::getShape() { return *this->shape.get(); }
-std::string Entity::getCategory() const { return this->category; }
-const World &Entity::getWorld() const { return *this->world; }
+// std::string Entity::getCategory() const { return this->category; }
+const World &Entity::getWorld() const { return this->world; }
 
 void Entity::step(float elapsedTime) {
   if (!active) {

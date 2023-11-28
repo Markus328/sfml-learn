@@ -18,57 +18,61 @@
 #include <iostream>
 #include <vector>
 
-Ball *Ball::clone(World &world) {
-  // assert(Entity::getEntities()["Ball"]);
-  int numBalls = world.getEntities<Ball>().size();
-  // std::cout << "balllsss: " << numBalls << "\n";
-  if (numBalls >= 400) {
-    return nullptr;
-  }
+int Ball::ball_count = 0;
 
-  return new Ball(*this, world);
+Ball &Ball::clone(World &world) const {
+  // assert(Entity::getEntities()["Ball"]);
+  // std::cout << "balllsss: " << numBalls << "\n";
+  ball_count++;
+  return *new Ball(*this, world);
 };
 Ball::Ball(const Ball &other, World &world)
     : Ball(other.getPosition(), other.getRadius(),
            other.getShape().getFillColor(), world) {
   this->setSpeed(other.getSpeed());
 }
-Ball::Ball(sf::Vector2f position, float radius, sf::Color color, World &world)
-    : Collider(position, sf::Vector2f(radius, radius), "Ball",
-               new sf::CircleShape(), world) {
+Ball::Ball(const sf::Vector2f &position, float radius, const sf::Color &color,
+           World &world)
+    : Collider(position, "Ball", world, new sf::CircleShape()) {
 
   sf::CircleShape *circleShape = (sf::CircleShape *)this->shape.get();
-
   circleShape->setRadius(radius);
   this->radius = radius;
+  this->size = {radius, radius};
   circleShape->setFillColor(color);
 
   updateBoundingBox();
 }
 
-void Ball::instantaneousCollide(const Collider &obj, CollisionSide side) {
+void Ball::instantaneousCollide(const Collider &obj, int side) {
   soundPool->play(Ball::bop);
 
   // std::cout << "angle: " << getAngle() << "\n";
-  setAngle(getAngle() + ((rand() % 3) - 1) * (5 * M_PI / 180));
+  setAngle(getAngle() +
+           ((rand() % 3) - 1) * ((rand() % 500) / 100.0 * M_PI / 180));
+  setSpeed(getASpeed());
   // setSpeed(getASpeed() * 0.99);
   // std::cout << "!!!! " << this->getId() << ", " << obj.getId() << std::endl;
 
-  continuousCollide(obj, side);
+  // continuousCollide(obj, side);
 }
-void Ball::continuousCollide(const Collider &obj, CollisionSide side) {
+void Ball::continuousCollide(const Collider &obj, int side) {
 
-  float speedx = getSpeed().x, speedy = getSpeed().y;
+  auto speed = getSpeed();
+  float speedx = speed.x;
+  float speedy = speed.y;
   if (side == Collision::SIDE_TOP) {
-    setSpeed(sf::Vector2f(speedx, -std::abs(speedy)));
+    setSpeed(speedx, -std::abs(speedy));
   } else if (side == Collision::SIDE_LEFT) {
-    setSpeed(sf::Vector2f(std::abs(speedx), speedy));
+    setSpeed(std::abs(speedx), speedy);
   } else if (side == Collision::SIDE_BOTTOM) {
-    setSpeed(sf::Vector2f(speedx, std::abs(speedy)));
+    setSpeed(speedx, std::abs(speedy));
   } else if (side == Collision::SIDE_RIGHT) {
-    setSpeed(sf::Vector2f(-std::abs(speedx), speedy));
+    setSpeed(-std::abs(speedx), speedy);
   }
 }
+
+const sf::Vector2f &Ball::getSize() const { return this->size; }
 // bool isAtBorder() {
 //   // top
 //   int col = SIDE_NONE;

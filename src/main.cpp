@@ -1,14 +1,15 @@
 
-#include "world.hpp"
-#include <SFML/System/Vector2.hpp>
 #include "soundpool.cpp"
+#include "world.hpp"
 #include <SFML/Audio.hpp>
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <SFML/System/Clock.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window.hpp>
 #include <chrono>
+#include <ctime>
 #include <filesystem>
 #include <iostream>
 #include <math.h>
@@ -21,14 +22,14 @@
 #include "ball.hpp"
 #include "entity.hpp"
 
-World world(sf::Vector2f(0, 0), sf::Vector2f(20000, 20000));
+World world({0,0}, {20000,20000});
 
-sf::String screenStr("Aperte ESC para sair");
+sf::String screenStr("Aperte ESC = sair");
 bool requested = false;
 
 sf::SoundBuffer Ball::bop;
 
-Ball ball(sf::Vector2f(300, 300), 20, sf::Color(20, 80, 50), world);
+Ball ball({300,300}, 10, sf::Color(20, 80, 50), world);
 
 int main() {
   SoundPool pool = SoundPool::getInstance();
@@ -43,6 +44,8 @@ int main() {
   auto window = sf::RenderWindow{
       {1440u, 900u}, "SFML Test", sf::Style::Default, settings};
   window.setFramerateLimit(90);
+  float lastTime = 0;
+  float elapsedTime = clock.restart().asSeconds();
   while (window.isOpen()) {
     window.clear();
     for (auto event = sf::Event{}; window.pollEvent(event);) {
@@ -85,11 +88,14 @@ int main() {
     txt.setFillColor(sf::Color(255, 0, 0));
     window.draw(txt);
 
-    float elapsedTime = clock.restart().asSeconds();
     for (Entity *e : world.getEntities()) {
       window.draw(e->getShape());
     }
     world.step(elapsedTime);
+    elapsedTime = clock.restart().asSeconds();
+    float fps = 1.f / (elapsedTime);
+    lastTime = elapsedTime;
+    std::cout << fps << std::endl;
     window.display();
   }
 }
