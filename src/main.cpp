@@ -22,14 +22,14 @@
 #include "ball.hpp"
 #include "entity.hpp"
 
-World world({0,0}, {20000,20000});
+World world({0, 0}, {1440, 900});
 
 sf::String screenStr("Aperte ESC = sair");
 bool requested = false;
 
 sf::SoundBuffer Ball::bop;
 
-Ball ball({300,300}, 10, sf::Color(20, 80, 50), world);
+Ball ball({500, 500}, 10, sf::Color(20, 80, 50), world);
 
 int main() {
   SoundPool pool = SoundPool::getInstance();
@@ -41,6 +41,7 @@ int main() {
   Ball::bop.loadFromFile("/home/markus/.config/util/sounds/voltest.wav");
   sf::ContextSettings settings;
   settings.antialiasingLevel = 8;
+
   auto window = sf::RenderWindow{
       {1440u, 900u}, "SFML Test", sf::Style::Default, settings};
   window.setFramerateLimit(90);
@@ -72,8 +73,15 @@ int main() {
           }
         } else if (event.key.code == sf::Keyboard::Space) {
           world.commitNewEntities();
+          world.getGravityPoint().growForce(1);
         }
         break;
+
+      case sf::Event::MouseMoved:
+        world.getGravityPoint().setPosition(event.mouseMove.x, event.mouseMove.y);
+        break;
+      case sf::Event::MouseWheelScrolled:
+        world.getGravityPoint().growForce(event.mouseWheelScroll.delta / 10);
       default:
         break;
       }
@@ -86,11 +94,12 @@ int main() {
                               "FantasqueSansMono-Regular.otf"));
     sf::Text txt(screenStr, font, 30);
     txt.setFillColor(sf::Color(255, 0, 0));
-    window.draw(txt);
 
     for (Entity *e : world.getEntities()) {
       window.draw(e->getShape());
     }
+    window.draw(txt);
+
     world.step(elapsedTime);
     elapsedTime = clock.restart().asSeconds();
     float fps = 1.f / (elapsedTime);

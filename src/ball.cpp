@@ -1,4 +1,5 @@
 #include "ball.hpp"
+#include "circleEntity.hpp"
 #include "collider.hpp"
 #include "collision.hpp"
 #include "entity.hpp"
@@ -16,9 +17,11 @@
 #include <cstdlib>
 #include <fmt/core.h>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 int Ball::ball_count = 0;
+float Ball::gravity_force = 0.02;
 
 Ball &Ball::clone(World &world) const {
   // assert(Entity::getEntities()["Ball"]);
@@ -33,46 +36,43 @@ Ball::Ball(const Ball &other, World &world)
 }
 Ball::Ball(const sf::Vector2f &position, float radius, const sf::Color &color,
            World &world)
-    : Collider(position, "Ball", world, new sf::CircleShape()) {
+    : CircleEntity(position, radius), Entity("Ball", world) {
 
-  sf::CircleShape *circleShape = (sf::CircleShape *)this->shape.get();
-  circleShape->setRadius(radius);
-  this->radius = radius;
-  this->size = {radius, radius};
-  circleShape->setFillColor(color);
+  getShape().setFillColor(color);
+  getShape().setPointCount(8);
 
   updateBoundingBox();
+  setup();
 }
 
-void Ball::instantaneousCollide(const Collider &obj, int side) {
-  soundPool->play(Ball::bop);
+Ball::~Ball() {}
 
-  // std::cout << "angle: " << getAngle() << "\n";
-  setAngle(getAngle() +
-           ((rand() % 3) - 1) * ((rand() % 500) / 100.0 * M_PI / 180));
-  setSpeed(getASpeed());
-  // setSpeed(getASpeed() * 0.99);
-  // std::cout << "!!!! " << this->getId() << ", " << obj.getId() << std::endl;
+// void Ball::instantaneousCollide(const Collider &obj, int side) {
+//   soundPool->play(Ball::bop);
 
-  // continuousCollide(obj, side);
-}
-void Ball::continuousCollide(const Collider &obj, int side) {
+//   // std::cout << "angle: " << getAngle() << "\n";
+//   setAngle(getAngle() +
+//            ((rand() % 3) - 1) * ((rand() % 500) / 100.0 * M_PI / 180));
+//   setSpeed(getASpeed() * 0.8);
+//   // std::cout << "sla\n";
+// }
+// void Ball::continuousCollide(const Collider &obj, int side) {
 
-  auto speed = getSpeed();
-  float speedx = speed.x;
-  float speedy = speed.y;
-  if (side == Collision::SIDE_TOP) {
-    setSpeed(speedx, -std::abs(speedy));
-  } else if (side == Collision::SIDE_LEFT) {
-    setSpeed(std::abs(speedx), speedy);
-  } else if (side == Collision::SIDE_BOTTOM) {
-    setSpeed(speedx, std::abs(speedy));
-  } else if (side == Collision::SIDE_RIGHT) {
-    setSpeed(-std::abs(speedx), speedy);
-  }
-}
+//   auto speed = getSpeed();
+//   float speedx = speed.x;
+//   float speedy = speed.y;
+//   if (side == Collision::SIDE_TOP) {
+//     setSpeed(speedx, -std::abs(speedy));
+//   } else if (side == Collision::SIDE_LEFT) {
+//     setSpeed(std::abs(speedx), speedy);
+//   } else if (side == Collision::SIDE_BOTTOM) {
+//     setSpeed(speedx, std::abs(speedy));
+//   } else if (side == Collision::SIDE_RIGHT) {
+//     setSpeed(-std::abs(speedx), speedy);
+//   }
+// }
 
-const sf::Vector2f &Ball::getSize() const { return this->size; }
+// const sf::Vector2f &Ball::getSize() const { return this->size; }
 // bool isAtBorder() {
 //   // top
 //   int col = SIDE_NONE;
@@ -116,8 +116,5 @@ const sf::Vector2f &Ball::getSize() const { return this->size; }
 // }
 void Ball::step(float elapsedTime) {
   Entity::step(elapsedTime);
-  move(this->position.x + this->getSpeed().x * elapsedTime,
-       this->position.y - this->getSpeed().y * elapsedTime);
+  move(getSpeed().x * elapsedTime, -getSpeed().y * elapsedTime);
 }
-
-float Ball::getRadius() const { return this->radius; }
